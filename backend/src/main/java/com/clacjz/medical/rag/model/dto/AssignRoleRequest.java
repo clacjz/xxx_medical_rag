@@ -1,0 +1,19 @@
+package com.clacjz.medical.rag.model.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AssignRoleRequest {
+
+    @NotBlank(message = "角色ID不能为空")
+    private String roleId;
+
+    private Boolean isPrimary;
+}

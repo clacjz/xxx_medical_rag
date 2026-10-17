@@ -1,0 +1,188 @@
+# 开发环境配置文件
+#
+# 配置规范：
+# - 所有服务地址统一使用 ${SERVICE_NAME}_HOST + ${SERVICE_NAME}_PORT 格式
+# - 生产环境敏感信息通过环境变量注入，不在此文件中明文配置
+
+
+ip: ${IP:localhost}
+
+# 应用服务器配置
+app:
+  host: ${APP_HOST:localhost}
+  port: ${APP_PORT:18080}
+  description: RAG Medical Backend - Development Environment
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+    allowed-headers: Authorization,Content-Type,X-Requested-With,X-Api-Key,X-CSRF-Token
+    exposed-headers: Authorization,X-Total-Count,X-Page-Number
+    allow-credentials: true
+    max-age: 3600
+  default-users:
+    enabled: ${DEFAULT_USERS_ENABLED:true}
+    users:
+      - username: ${DEFAULT_ADMIN_USERNAME:admin}
+        password: ${DEFAULT_ADMIN_PASSWORD:admin123}
+        email: ${DEFAULT_ADMIN_EMAIL:admin@example.com}
+        displayName: ${DEFAULT_ADMIN_DISPLAY_NAME:系统管理员}
+        role: ${DEFAULT_ADMIN_ROLE:SYSTEM_ADMIN}
+        enabled: ${DEFAULT_ADMIN_ENABLED:true}
+      - username: ${DEFAULT_KBADMIN_USERNAME:kbadmin}
+        password: ${DEFAULT_KBADMIN_PASSWORD:kbadmin123}
+        email: ${DEFAULT_KBADMIN_EMAIL:kbadmin@example.com}
+        displayName: ${DEFAULT_KBADMIN_DISPLAY_NAME:知识管理员}
+        role: ${DEFAULT_KBADMIN_ROLE:KNOWLEDGE_ADMIN}
+        enabled: ${DEFAULT_KBADMIN_ENABLED:true}
+      - username: ${DEFAULT_USER_USERNAME:user}
+        password: ${DEFAULT_USER_PASSWORD:user123}
+        email: ${DEFAULT_USER_EMAIL:user@example.com}
+        displayName: ${DEFAULT_USER_DISPLAY_NAME:普通用户}
+        role: ${DEFAULT_USER_ROLE:USER}
+        enabled: ${DEFAULT_USER_ENABLED:true}
+
+# 数据库配置
+spring:
+  # PostgreSQL数据库配置
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:rag_medical_dev}?characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8_general_ci&characterSetResults=UTF-8&TimeZone=Asia/Shanghai
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  # MyBatis Plus配置
+  mybatis-plus:
+    type-aliases-package: com.clacjz.medical.rag.model.entity
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    global-config:
+      db-config:
+        id-type: assign_id
+
+  jackson:
+    time-zone: Asia/Shanghai
+
+  # Redis缓存配置
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+          max-wait: 3000ms
+
+  etcd:
+    uris: http://${ip}:2379
+    timeout: 5000
+    username: root
+    password: ${ETCD_PASSWORD:}
+
+  elasticsearch:
+    uris: http://${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:9200}
+    connection-timeout: 5000
+    socket-timeout: 30000
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# RAG系统配置
+rag:
+  embedding:
+    host: ${EMBEDDING_HOST:localhost}
+    port: ${EMBEDDING_PORT:28347}
+    url: http://${rag.embedding.host}:${rag.embedding.port}
+    model: ${EMBEDDING_MODEL:BGE-M3}
+    dimension: ${EMBEDDING_DIMENSION:1024}
+    max-sequence-length: ${EMBEDDING_MAX_SEQUENCE_LENGTH:8192}
+    default-chunk-size: ${EMBEDDING_DEFAULT_CHUNK_SIZE:4000}
+    default-chunk-overlap: ${EMBEDDING_DEFAULT_CHUNK_OVERLAP:400}
+    timeout: ${EMBEDDING_TIMEOUT:10000}
+  llm:
+    host: ${LLM_HOST:localhost}
+    port: ${LLM_PORT:38248}
+    base-url: http://${rag.llm.host}:${rag.llm.port}
+    model: ${LLM_MODEL:Qwen3.6-27B}
+    temperature: ${LLM_TEMPERATURE:0.7}
+    max-tokens: ${LLM_MAX_TOKENS:2048}
+    timeout: ${LLM_TIMEOUT:60000}
+    thinking-max-tokens: ${LLM_THINKING_MAX_TOKENS:4096}
+  minio:
+    host: ${MINIO_HOST:localhost}
+    port: ${MINIO_PORT:9000}
+    endpoint: ${MINIO_ENDPOINT:http://${rag.minio.host}:${rag.minio.port}}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  qdrant:
+    host: ${QDRANT_HOST:localhost}
+    port: ${QDRANT_PORT:6333}
+    grpc-port: ${QDRANT_GRPC_PORT:6334}
+    api-key: ${QDRANT_API_KEY:qdrant_secret_key_2024}
+  elasticsearch:
+    host: ${ELASTICSEARCH_HOST:localhost}
+    port: ${ELASTICSEARCH_PORT:9200}
+  etcd:
+    host: ${ETCD_HOST:localhost}
+    port: ${ETCD_PORT:2379}
+  ocr:
+    service-url: ${OCR_SERVICE_URL:http://localhost:28347}
+    fallback-url: ${OCR_FALLBACK_URL:http://localhost:28347}
+    timeout: ${OCR_TIMEOUT:30000}
+    enabled: ${OCR_ENABLED:true}
+    # Batch OCR（从应用默认配置继承，可在此覆盖）
+    batch-enabled: ${OCR_BATCH_ENABLED:true}
+    batch-size: ${OCR_BATCH_SIZE:4}
+    batch-read-timeout: ${OCR_BATCH_READ_TIMEOUT:600000}
+  ner:
+    enabled: ${NER_ENABLED:false}
+    model: ${NER_MODEL:Qwen3.6-27B}
+    temperature: ${NER_TEMPERATURE:0.1}
+    query-cache-ttl: ${NER_QUERY_CACHE_TTL:300}
+  query-rewrite:
+    enabled: ${QUERY_REWRITE_ENABLED:true}
+    model: ${QUERY_REWRITE_MODEL:Qwen3.6-27B}
+    temperature: ${QUERY_REWRITE_TEMPERATURE:0.3}
+
+# JWT认证配置
+jwt:
+  secret: ${JWT_SECRET:dev-key-for-jwt-testing-only-not-real-256bit-production}
+  expiration: ${JWT_EXPIRATION:7200000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# API文档配置（开发环境启用）
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置（开发环境使用DEBUG级别）
+logging:
+  level:
+    com.clacjz.medical.rag: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.ai: DEBUG
+  file:
+    name: logs/${spring.application.name}-dev.log

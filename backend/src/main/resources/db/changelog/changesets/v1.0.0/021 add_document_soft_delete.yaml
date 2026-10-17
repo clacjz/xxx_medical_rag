@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-document-soft-delete
+      author: system
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false

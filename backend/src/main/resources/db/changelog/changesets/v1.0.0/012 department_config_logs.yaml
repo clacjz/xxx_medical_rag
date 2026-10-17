@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-department-config-logs-table
+      author: system
+      changes:
+        - createTable:
+            tableName: department_config_logs
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: operator_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: before_value
+                  type: TEXT
+              - column:
+                  name: after_value
+                  type: TEXT
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+            indexes:
+              - index:
+                  name: idx_dept_config_operator_time
+                  tableName: department_config_logs
+                  columns:
+                    - column:
+                        name: operator_id
+                    - column:
+                        name: created_at
+              - index:
+                  name: idx_dept_config_target_type
+                  tableName: department_config_logs
+                  columns:
+                    - column:
+                        name: target_type
+                    - column:
+                        name: target_id

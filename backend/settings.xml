@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0
+                              https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>aliyun</id>
+            <name>Aliyun Maven Mirror</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <mirrorOf>central,repo1,repo2,spring,google</mirrorOf>
+        </mirror>
+    </mirrors>
+
+    <proxies>
+        <!-- 如处于公司内网需通过代理访问 Maven，可在此取消注释并填入代理地址
+        <proxy>
+            <id>http-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>your-proxy-host</host>
+            <port>8080</port>
+        </proxy>
+        -->
+    </proxies>
+
+</settings>

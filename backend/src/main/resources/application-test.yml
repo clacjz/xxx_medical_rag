@@ -1,0 +1,129 @@
+# 测试环境配置文件
+#
+# 配置规范：
+# - 所有服务地址统一使用 ${SERVICE_NAME}_HOST + ${SERVICE_NAME}_PORT 格式
+# - 使用H2内存数据库用于单元测试
+# - Redis/Qdrant/MinIO等中间件使用localhost
+
+
+# 应用服务器配置
+app:
+  host: ${APP_HOST:localhost}
+  port: ${APP_PORT:8080}
+  description: RAG Medical Backend - Test Environment
+  default-users:
+    enabled: ${DEFAULT_USERS_ENABLED:true}
+    users:
+      - username: ${DEFAULT_ADMIN_USERNAME:admin}
+        password: ${DEFAULT_ADMIN_PASSWORD:admin123}
+        email: ${DEFAULT_ADMIN_EMAIL:admin@example.com}
+        displayName: ${DEFAULT_ADMIN_DISPLAY_NAME:系统管理员}
+        role: ${DEFAULT_ADMIN_ROLE:ADMIN}
+        enabled: ${DEFAULT_ADMIN_ENABLED:true}
+      - username: ${DEFAULT_KBADMIN_USERNAME:kbadmin}
+        password: ${DEFAULT_KBADMIN_PASSWORD:kbadmin123}
+        email: ${DEFAULT_KBADMIN_EMAIL:kbadmin@example.com}
+        displayName: ${DEFAULT_KBADMIN_DISPLAY_NAME:知识管理员}
+        role: ${DEFAULT_KBADMIN_ROLE:KNOWLEDGE_ADMIN}
+        enabled: ${DEFAULT_KBADMIN_ENABLED:true}
+      - username: ${DEFAULT_USER_USERNAME:user}
+        password: ${DEFAULT_USER_PASSWORD:user123}
+        email: ${DEFAULT_USER_EMAIL:user@example.com}
+        displayName: ${DEFAULT_USER_DISPLAY_NAME:普通用户}
+        role: ${DEFAULT_USER_ROLE:USER}
+        enabled: ${DEFAULT_USER_ENABLED:true}
+  default-department:
+    enabled: ${DEFAULT_DEPARTMENT_ENABLED:true}
+    code: ${DEFAULT_DEPARTMENT_CODE:DEFAULT}
+    name: ${DEFAULT_DEPARTMENT_NAME:默认部门}
+    description: ${DEFAULT_DEPARTMENT_DESCRIPTION:系统预设的默认部门}
+    parentId: ${DEFAULT_DEPARTMENT_PARENT_ID:}
+    auto-assign-new-users: ${DEFAULT_DEPARTMENT_AUTO_ASSIGN:true}
+    auto-assign-unassigned-users: ${DEFAULT_DEPARTMENT_AUTO_ASSIGN_EXISTING:false}
+
+# 数据库配置
+spring:
+  # H2内存数据库（测试专用）
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: ${POSTGRES_USERNAME:sa}
+    password: ${POSTGRES_PASSWORD:}
+    driver-class-name: org.h2.Driver
+
+  # JPA配置（测试环境）
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Liquibase配置（测试环境）
+  liquibase:
+    enabled: false
+
+  # MyBatis Plus配置
+  mybatis-plus:
+    mapper-locations: classpath*:/mapper/**/*.xml
+    type-aliases-package: com.clacjz.medical.rag.model.entity
+    configuration:
+      map-underscore-to-camel-case: true
+    global-config:
+      db-config:
+        id-type: assign_id
+
+  # Redis缓存配置（测试环境）
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 1
+      timeout: 5000ms
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# RAG系统配置（继承application.yml默认配置，仅覆盖差异部分）
+rag:
+  embedding:
+    timeout: ${EMBEDDING_TIMEOUT:5000}
+  llm:
+    timeout: ${LLM_TIMEOUT:30000}
+  qdrant:
+    collection:
+      default-name: ${QDRANT_COLLECTION:test_documents}
+  minio:
+    bucket:
+      documents: ${MINIO_BUCKET_DOCUMENTS:test-documents}
+      temp: ${MINIO_BUCKET_TEMP:test-temp}
+
+# JWT认证配置（测试专用密钥）
+jwt:
+  secret: ${JWT_SECRET:test-key-for-jwt-testing-only-purposes-not-real-256bits}
+  expiration: ${JWT_EXPIRATION:3600000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000}
+
+# API文档配置（测试环境启用）
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+# 日志配置（测试环境）
+logging:
+  level:
+    com.clacjz.medical.rag: DEBUG
+    org.springframework.test: INFO
+    org.springframework.web: WARN
+  file:
+    name: logs/${spring.application.name}-test.log

@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-doc-type-to-collections
+      author: system
+      changes:
+        - addColumn:
+            tableName: collections
+            columns:
+              - column:
+                  name: doc_type
+                  type: VARCHAR(32)
+                  defaultValue: NORMAL
+                  remarks: 文档类型：MANUAL(说明书类结构化短文档) / NORMAL(普通文档)
+        - addColumn:
+            tableName: collections
+            columns:
+              - column:
+                  name: section_template
+                  type: JSONB
+                  remarks: 文档类型为MANUAL时的字段模板配置
+        - sql:
+            sql: UPDATE collections SET doc_type = 'NORMAL' WHERE doc_type IS NULL
+
+  - changeSet:
+      id: add-doc-type-to-documents
+      author: system
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: doc_type
+                  type: VARCHAR(32)
+                  remarks: 文档类型：MANUAL(说明书类) / NORMAL(普通文档)，可继承自collection
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: key_sections
+                  type: JSONB
+                  remarks: 结构化字段（仅MANUAL类型文档）
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: page_annotations
+                  type: JSONB
+                  remarks: 页面标注（来自OCR，仅MANUAL类型文档）
+        - sql:
+            sql: UPDATE documents SET doc_type = 'NORMAL' WHERE doc_type IS NULL

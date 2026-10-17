@@ -1,0 +1,111 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Maven Wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+idea/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Spring Boot
+spring-boot-devtools.properties
+*.pid
+
+# Spring Boot Config (敏感配置)
+application-local.yml
+application-local.properties
+*-local.yml
+*-local.properties
+config-local.yml
+
+# Logs
+logs/
+*.log
+log/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment files (敏感)
+.env
+.env.*
+.env.local
+*.env
+# ...但保留示例模板
+!.env.*.example
+
+# Test output
+/test-output/
+/coverage/
+*.exec
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+*.temp
+*.swp
+
+# Lombok generated files
+*.class
+/delombok/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+/h2db/
+/qdrant_storage/
+
+# JVM crash logs
+hs_err_pid*

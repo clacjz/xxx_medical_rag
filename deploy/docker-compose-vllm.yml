@@ -1,0 +1,64 @@
+services:
+  glm-ocr:
+    image: glm-ocr-vllm:v0.19.0
+    container_name: glm-ocr-server
+    ports:
+      - "38247:8080"
+    volumes:
+      - ./models/glm-ocr:/models/glm-ocr
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              device_ids: ["0"]
+    command:
+      - /models/glm-ocr
+      - --port
+      - "8080"
+      - --max-model-len
+      - "16384"
+      - --gpu-memory-utilization
+      - "0.85"
+      - --served-model-name
+      - GLM-OCR
+      - --max-num-seqs
+      - "128"
+      - --allowed-local-media-path
+      - /
+
+  qwen9b-ocr:
+    image: vllm/vllm-openai:v0.19.0-ubuntu2404
+    container_name: qwen3.5-9b-server
+    ports:
+      - "38248:8080"
+    volumes:
+      - ./models/qwen-9B:/models/Qwen3.6-27BB
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              device_ids: ["1", "2"]
+    command:
+      - /models/Qwen3.6-27BB
+      - --port
+      - "8080"
+      - --tensor-parallel-size
+      - "2"
+      - --max-model-len
+      - "131072"
+      - --gpu-memory-utilization
+      - "0.9"
+      - --quantization
+      - fp8
+      - --served-model-name
+      - Qwen3.6-27BB
+      - --allowed-local-media-path
+      - /
+
+networks:
+  default:
+    name: vllm-network

@@ -1,0 +1,171 @@
+# 生产环境配置文件
+#
+# 重要安全提示：
+# - 所有敏感信息（密码、密钥、API凭证等）必须通过环境变量注入
+# - 禁止在此文件中明文配置任何敏感信息
+# - 生产部署前请务必完成所有环境变量配置
+
+
+# 应用服务器配置
+server:
+  port: ${APP_PORT:8080}
+  address: ${APP_HOST:0.0.0.0}
+
+# 数据库配置
+spring:
+  # PostgreSQL数据库配置（生产环境）
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:rag_medical}?characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8_general_ci&characterSetResults=UTF-8&TimeZone=Asia/Shanghai
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 600000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  # MyBatis Plus配置（生产环境）
+  mybatis-plus:
+    type-aliases-package: com.clacjz.medical.rag.model.entity
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    global-config:
+      db-config:
+        id-type: assign_id
+
+  jackson:
+    time-zone: Asia/Shanghai
+
+  # Redis缓存配置（生产环境）
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 64
+          max-idle: 32
+          min-idle: 8
+          max-wait: 1000ms
+        shutdown-timeout: 100ms
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# RAG系统配置（继承application.yml默认配置，仅覆盖差异部分）
+rag:
+  embedding:
+    host: ${EMBEDDING_HOST:localhost}
+    port: ${EMBEDDING_PORT:28347}
+    url: http://${rag.embedding.host}:${rag.embedding.port}
+    model: ${EMBEDDING_MODEL:BGE-M3}
+    dimension: ${EMBEDDING_DIMENSION:1024}
+    max-sequence-length: ${EMBEDDING_MAX_SEQUENCE_LENGTH:8192}
+    default-chunk-size: ${EMBEDDING_DEFAULT_CHUNK_SIZE:4000}
+    default-chunk-overlap: ${EMBEDDING_DEFAULT_CHUNK_OVERLAP:400}
+    timeout: ${EMBEDDING_TIMEOUT:10000}
+  llm:
+    host: ${LLM_HOST}
+    port: ${LLM_PORT:38248}
+    base-url: ${LLM_BASE_URL:http://${LLM_HOST}:${LLM_PORT}}
+    model: ${LLM_MODEL:Qwen3.6-27B}
+    temperature: ${LLM_TEMPERATURE:0.7}
+    max-tokens: ${LLM_MAX_TOKENS:4096}
+    timeout: ${LLM_TIMEOUT:60000}
+    thinking-max-tokens: ${LLM_THINKING_MAX_TOKENS:4096}
+  qdrant:
+    host: ${QDRANT_HOST}
+    port: ${QDRANT_PORT:6333}
+    grpc-port: ${QDRANT_GRPC_PORT:6334}
+    api-key: ${QDRANT_API_KEY}
+  elasticsearch:
+    host: ${ELASTICSEARCH_HOST:localhost}
+    port: ${ELASTICSEARCH_PORT:9200}
+  etcd:
+    host: ${ETCD_HOST:localhost}
+    port: ${ETCD_PORT:2379}
+  minio:
+    host: ${MINIO_HOST}
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+  ner:
+    enabled: ${NER_ENABLED:false}
+    model: ${NER_MODEL:Qwen3.6-27B}
+    temperature: ${NER_TEMPERATURE:0.1}
+    query-cache-ttl: ${NER_QUERY_CACHE_TTL:300}
+  query-rewrite:
+    enabled: ${QUERY_REWRITE_ENABLED:true}
+    model: ${QUERY_REWRITE_MODEL:Qwen3.6-27B}
+    temperature: ${QUERY_REWRITE_TEMPERATURE:0.3}
+
+# JWT认证配置（生产环境必须使用复杂密钥）
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:7200000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# API文档配置（生产环境禁用）
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# CORS配置（生产环境只允许前端）
+app:
+  security:
+    # 信任代理头以获取真实IP，但仅限前端服务器IP
+    trust-proxy-headers: true
+    trusted-proxies: localhost,172.16.0.0/12
+  rsa:
+    private-key: ${RSA_PRIVATE_KEY:}
+    public-key: ${RSA_PUBLIC_KEY:}
+  cors:
+    allowed-origins: https://localhost:18030
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: Authorization,Content-Type,X-Requested-With,X-Tenant-Id
+    exposed-headers: Authorization
+    allow-credentials: true
+    max-age: 3600
+
+# Actuator监控配置（生产环境安全配置）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+# 日志配置（生产环境）
+logging:
+  base-path: /app/logs
+  level:
+    root: WARN
+    com.clacjz.medical.rag: INFO
+    com.clacjz.medical.rag.service.LLMService: DEBUG
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.ai: INFO
+  file:
+    name: /app/logs/${spring.application.name}.log
+    max-size: 500MB
+    max-history: 90
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      total-size-cap: 10GB

@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/001 users.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/002 roles.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/003 departments.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/004 user_roles.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/005 user_departments.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/006 collections.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/007 documents.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/008 chat_sessions.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/009 chat_messages.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/010 audit_logs.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/011 permission_audit_logs.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/012 department_config_logs.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/013 document_permissions.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/014 document_user_permissions.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/015 collection_permissions.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/016 collection_documents.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/017 collection_user_permissions.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/018 sys_config.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/019 rbac_improvement.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/020 add_doc_type.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/021 add_document_soft_delete.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/022 add_document_expected_chunk_count.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/023 add_document_deleted_at.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/024 add_chat_messages_reasoning.yaml
+  - include:
+      file: classpath:db/changelog/changesets/v1.0.0/025 add_document_chunks.yaml

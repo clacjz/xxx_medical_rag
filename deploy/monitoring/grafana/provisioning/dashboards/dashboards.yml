@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'RAG Medical'
+    folder: 'RAG医疗知识库'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
+    folderUid: ''
+    uid: rag-medical
+    editable: true

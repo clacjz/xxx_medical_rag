@@ -1,0 +1,90 @@
+version: '3.8'
+
+# ============================================
+# RAG Backend 应用 - 本地Docker
+# 使用方式: docker-compose --env-file .env.local -f docker-compose-backend.yml up -d
+# 需要先启动 docker-compose.yml 中的基础设施服务
+# ============================================
+
+services:
+  # ============================================
+  # RAG Backend 应用
+  # ============================================
+  rag-backend:
+    container_name: rag-backend
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-18080}:18080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local-docker}
+      - JAVA_OPTS=${JAVA_OPTS:- -Xms512m -Xmx1024m -XX:+UseG1GC}
+      # 数据库
+      - POSTGRES_HOST=${POSTGRES_HOST:-localhost}
+      - POSTGRES_PORT=${POSTGRES_PORT:-15432}
+      - POSTGRES_DB=${POSTGRES_DB:-rag_medical}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+      # Redis
+      - REDIS_HOST=${REDIS_HOST:-localhost}
+      - REDIS_PORT=${REDIS_PORT:-16379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      # Qdrant
+      - QDRANT_HOST=${QDRANT_HOST:-localhost}
+      - QDRANT_PORT=${QDRANT_PORT:-16333}
+      - QDRANT_GRPC_PORT=${QDRANT_GRPC_PORT:-16334}
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-qdrant_secret_key_2024}
+      # LLM
+      - LLM_HOST=${LLM_HOST:-localhost}
+      - LLM_PORT=${LLM_PORT:-11434}
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://localhost:11434}
+      - LLM_MODEL=${LLM_MODEL:-qwen2.5:7b}
+      # MinIO
+      - MINIO_HOST=${MINIO_HOST:-localhost}
+      - MINIO_PORT=${MINIO_PORT:-29000}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://localhost:29000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin123}
+      # Etcd
+      - ETCD_HOST=${ETCD_HOST:-localhost}
+      - ETCD_PORT=${ETCD_PORT:-12379}
+      - ETCD_URIS=${ETCD_URIS:-http://localhost:12379}
+      # Elasticsearch
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-localhost}
+      - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-19200}
+      - ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS:-http://localhost:19200}
+      # OCR
+      - OCR_SERVICE_URL=${OCR_SERVICE_URL:-http://localhost:8860}
+      - OCR_FALLBACK_URL=${OCR_FALLBACK_URL:-http://localhost:8860}
+      - OCR_ENABLED=${OCR_ENABLED:-false}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET:-docker-dev-secret-key-for-local-development-only-change-in-production}
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - rag-network
+    mem_limit: 2g
+    cpus: 2.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+
+# ============================================
+# 网络配置
+# ============================================
+networks:
+  rag-network:
+    external: true
+
+# ============================================
+# 数据卷配置
+# ============================================
+volumes:
+  backend_logs:
+    name: rag-backend-logs

@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-user-roles-table
+      author: system
+      changes:
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_primary
+                  type: BOOLEAN
+                  defaultValue: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+            constraints:
+              - uniqueConstraint:
+                  constraintName: uk_user_roles_user_role
+                  tableName: user_roles
+                  columnNames: user_id, role_id

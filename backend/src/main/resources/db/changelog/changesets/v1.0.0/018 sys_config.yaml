@@ -1,0 +1,617 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-sys-config-table
+      author: system
+      changes:
+        - createTable:
+            tableName: sys_config
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: config_key
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: TEXT
+              - column:
+                  name: value_type
+                  type: VARCHAR(20)
+                  defaultValue: string
+              - column:
+                  name: description
+                  type: VARCHAR(200)
+              - column:
+                  name: default_value
+                  type: TEXT
+              - column:
+                  name: valid_values
+                  type: VARCHAR(500)
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_by
+                  type: VARCHAR(36)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+            indexes:
+              - index:
+                  name: idx_sys_config_category
+                  tableName: sys_config
+                  columns:
+                    - column:
+                        name: category
+              - index:
+                  name: idx_sys_config_key
+                  tableName: sys_config
+                  columns:
+                    - column:
+                        name: config_key
+              - index:
+                  name: idx_sys_config_category_key
+                  tableName: sys_config
+                  columns:
+                    - column:
+                        name: category
+                    - column:
+                        name: config_key
+                  unique: true
+
+  - changeSet:
+      id: init-sys-config-data
+      author: system
+      changes:
+        # Embedding 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-embed-host" }
+              - column: { name: category, value: "embedding" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Embedding服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-embed-port" }
+              - column: { name: category, value: "embedding" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 8081 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Embedding服务端口" }
+              - column: { name: default_value, valueNumeric: 8081 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-embed-model" }
+              - column: { name: category, value: "embedding" }
+              - column: { name: config_key, value: "model" }
+              - column: { name: value, value: "bge-large-zh-v1.5" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Embedding模型名称" }
+              - column: { name: default_value, value: "bge-large-zh-v1.5" }
+              - column: { name: valid_values, value: "bge-large-zh-v1.5,bge-base-zh,text2vec-base-chinese" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-embed-dimension" }
+              - column: { name: category, value: "embedding" }
+              - column: { name: config_key, value: "dimension" }
+              - column: { name: value, valueNumeric: 1024 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "向量维度" }
+              - column: { name: default_value, valueNumeric: 1024 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-embed-timeout" }
+              - column: { name: category, value: "embedding" }
+              - column: { name: config_key, value: "timeout" }
+              - column: { name: value, valueNumeric: 10000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 10000 }
+
+        # LLM 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-host" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "LLM服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-port" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 11434 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "LLM服务端口" }
+              - column: { name: default_value, valueNumeric: 11434 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-model" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "model" }
+              - column: { name: value, value: "qwen2.5:7b" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "LLM模型名称" }
+              - column: { name: default_value, value: "qwen2.5:7b" }
+              - column: { name: valid_values, value: "qwen2.5:7b,qwen2.5:14b,llama3:8b" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-temperature" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "temperature" }
+              - column: { name: value, value: "0.7" }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "生成温度参数" }
+              - column: { name: default_value, value: "0.7" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-maxTokens" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "maxTokens" }
+              - column: { name: value, valueNumeric: 2048 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "最大Token数" }
+              - column: { name: default_value, valueNumeric: 2048 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-llm-timeout" }
+              - column: { name: category, value: "llm" }
+              - column: { name: config_key, value: "timeout" }
+              - column: { name: value, valueNumeric: 60000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 60000 }
+
+        # 文档处理配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-doc-chunkSize" }
+              - column: { name: category, value: "document" }
+              - column: { name: config_key, value: "chunkSize" }
+              - column: { name: value, valueNumeric: 500 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "默认分块大小" }
+              - column: { name: default_value, valueNumeric: 500 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-doc-chunkOverlap" }
+              - column: { name: category, value: "document" }
+              - column: { name: config_key, value: "chunkOverlap" }
+              - column: { name: value, valueNumeric: 50 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "分块重叠字符数" }
+              - column: { name: default_value, valueNumeric: 50 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-doc-minChunkLength" }
+              - column: { name: category, value: "document" }
+              - column: { name: config_key, value: "minChunkLength" }
+              - column: { name: value, valueNumeric: 50 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "最小分块长度" }
+              - column: { name: default_value, valueNumeric: 50 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-doc-maxFileSize" }
+              - column: { name: category, value: "document" }
+              - column: { name: config_key, value: "maxFileSize" }
+              - column: { name: value, valueNumeric: 100 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "最大文件大小(MB)" }
+              - column: { name: default_value, valueNumeric: 100 }
+
+        # 检索配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ret-topK" }
+              - column: { name: category, value: "retrieval" }
+              - column: { name: config_key, value: "topK" }
+              - column: { name: value, valueNumeric: 5 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "返回的检索结果数量" }
+              - column: { name: default_value, valueNumeric: 5 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ret-similarityThreshold" }
+              - column: { name: category, value: "retrieval" }
+              - column: { name: config_key, value: "similarityThreshold" }
+              - column: { name: value, value: "0.7" }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "相似度阈值" }
+              - column: { name: default_value, value: "0.7" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ret-enableRerank" }
+              - column: { name: category, value: "retrieval" }
+              - column: { name: config_key, value: "enableRerank" }
+              - column: { name: value, value: "true" }
+              - column: { name: value_type, value: "boolean" }
+              - column: { name: description, value: "是否启用Rerank" }
+              - column: { name: default_value, value: "true" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ret-historyTurns" }
+              - column: { name: category, value: "retrieval" }
+              - column: { name: config_key, value: "historyTurns" }
+              - column: { name: value, valueNumeric: 3 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "历史对话轮数" }
+              - column: { name: default_value, valueNumeric: 3 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ret-historyWindow" }
+              - column: { name: category, value: "retrieval" }
+              - column: { name: config_key, value: "historyWindow" }
+              - column: { name: value, valueNumeric: 2000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "历史窗口大小" }
+              - column: { name: default_value, valueNumeric: 2000 }
+
+        # Qdrant 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-host" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Qdrant服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-port" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 6333 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Qdrant REST API端口" }
+              - column: { name: default_value, valueNumeric: 6333 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-grpcPort" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "grpcPort" }
+              - column: { name: value, valueNumeric: 6334 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Qdrant gRPC端口" }
+              - column: { name: default_value, valueNumeric: 6334 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-timeout" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "timeout" }
+              - column: { name: value, valueNumeric: 5 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "超时时间(s)" }
+              - column: { name: default_value, valueNumeric: 5 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-maxConnections" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "maxConnections" }
+              - column: { name: value, valueNumeric: 32 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "最大连接数" }
+              - column: { name: default_value, valueNumeric: 32 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-idleTimeout" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "idleTimeout" }
+              - column: { name: value, valueNumeric: 300 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "空闲超时时间(s)" }
+              - column: { name: default_value, valueNumeric: 300 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-collectionDefaultName" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "collection.defaultName" }
+              - column: { name: value, value: "medical_documents" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "默认集合名称" }
+              - column: { name: default_value, value: "medical_documents" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-vectorSize" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "collection.vectorSize" }
+              - column: { name: value, valueNumeric: 1024 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "向量维度" }
+              - column: { name: default_value, valueNumeric: 1024 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-qdrant-distance" }
+              - column: { name: category, value: "qdrant" }
+              - column: { name: config_key, value: "collection.distance" }
+              - column: { name: value, value: "Cosine" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "距离度量方式" }
+              - column: { name: default_value, value: "Cosine" }
+              - column: { name: valid_values, value: "Cosine,Euclid,Dot" }
+
+        # MinIO 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-host" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "MinIO服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-port" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 9000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "MinIO服务端口" }
+              - column: { name: default_value, valueNumeric: 9000 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-accessKey" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "accessKey" }
+              - column: { name: value, value: "minioadmin" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Access Key" }
+              - column: { name: default_value, value: "minioadmin" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-secretKey" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "secretKey" }
+              - column: { name: value, value: "minioadmin" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Secret Key" }
+              - column: { name: default_value, value: "minioadmin" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-bucketDocuments" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "bucket.documents" }
+              - column: { name: value, value: "rag-documents" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "文档存储桶名" }
+              - column: { name: default_value, value: "rag-documents" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-minio-bucketTemp" }
+              - column: { name: category, value: "minio" }
+              - column: { name: config_key, value: "bucket.temp" }
+              - column: { name: value, value: "rag-temp" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "临时文件桶名" }
+              - column: { name: default_value, value: "rag-temp" }
+
+        # OCR 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-serviceUrl" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "serviceUrl" }
+              - column: { name: value, value: "http://localhost:8860" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "GLM-OCR服务地址" }
+              - column: { name: default_value, value: "http://localhost:8860" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-fallbackUrl" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "fallbackUrl" }
+              - column: { name: value, value: "http://localhost:8860" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Qwen3.6-27B兜底服务地址" }
+              - column: { name: default_value, value: "http://localhost:8860" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-timeout" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "timeout" }
+              - column: { name: value, valueNumeric: 30000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "请求超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 30000 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-maxCacheTtl" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "maxCacheTtl" }
+              - column: { name: value, valueNumeric: 30 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "缓存TTL(分钟)" }
+              - column: { name: default_value, valueNumeric: 30 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-maxPages" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "maxPages" }
+              - column: { name: value, valueNumeric: 10 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "最大预览页数" }
+              - column: { name: default_value, valueNumeric: 10 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-ocr-enabled" }
+              - column: { name: category, value: "ocr" }
+              - column: { name: config_key, value: "enabled" }
+              - column: { name: value, value: "true" }
+              - column: { name: value_type, value: "boolean" }
+              - column: { name: description, value: "是否启用OCR功能" }
+              - column: { name: default_value, value: "true" }
+
+        # Etcd 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-etcd-host" }
+              - column: { name: category, value: "etcd" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Etcd服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-etcd-port" }
+              - column: { name: category, value: "etcd" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 2379 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Etcd服务端口" }
+              - column: { name: default_value, valueNumeric: 2379 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-etcd-timeout" }
+              - column: { name: category, value: "etcd" }
+              - column: { name: config_key, value: "timeout" }
+              - column: { name: value, valueNumeric: 5000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 5000 }
+
+        # Elasticsearch 配置
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-es-host" }
+              - column: { name: category, value: "elasticsearch" }
+              - column: { name: config_key, value: "host" }
+              - column: { name: value, value: "localhost" }
+              - column: { name: value_type, value: "string" }
+              - column: { name: description, value: "Elasticsearch服务地址" }
+              - column: { name: default_value, value: "localhost" }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-es-port" }
+              - column: { name: category, value: "elasticsearch" }
+              - column: { name: config_key, value: "port" }
+              - column: { name: value, valueNumeric: 9200 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Elasticsearch服务端口" }
+              - column: { name: default_value, valueNumeric: 9200 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-es-connectionTimeout" }
+              - column: { name: category, value: "elasticsearch" }
+              - column: { name: config_key, value: "connectionTimeout" }
+              - column: { name: value, valueNumeric: 5000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "连接超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 5000 }
+
+        - insert:
+            tableName: sys_config
+            columns:
+              - column: { name: id, value: "cfg-es-socketTimeout" }
+              - column: { name: category, value: "elasticsearch" }
+              - column: { name: config_key, value: "socketTimeout" }
+              - column: { name: value, valueNumeric: 30000 }
+              - column: { name: value_type, value: "number" }
+              - column: { name: description, value: "Socket超时时间(ms)" }
+              - column: { name: default_value, valueNumeric: 30000 }

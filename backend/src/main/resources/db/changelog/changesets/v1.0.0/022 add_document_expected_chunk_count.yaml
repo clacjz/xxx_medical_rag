@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-document-expected-chunk-count
+      author: system
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: expected_chunk_count
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false

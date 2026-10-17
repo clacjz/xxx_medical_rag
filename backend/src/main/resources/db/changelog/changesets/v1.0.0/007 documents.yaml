@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-documents-table
+      author: system
+      changes:
+        - createTable:
+            tableName: documents
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: file_path
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_size
+                  type: BIGINT
+              - column:
+                  name: file_type
+                  type: VARCHAR(50)
+              - column:
+                  name: collection_id
+                  type: VARCHAR(36)
+              - column:
+                  name: owner_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: department_id
+                  type: VARCHAR(36)
+              - column:
+                  name: upload_status
+                  type: VARCHAR(20)
+                  defaultValue: pending
+              - column:
+                  name: parse_status
+                  type: VARCHAR(20)
+                  defaultValue: pending
+              - column:
+                  name: chunk_count
+                  type: INTEGER
+                  defaultValue: 0
+              - column:
+                  name: vector_ids
+                  type: TEXT
+              - column:
+                  name: chunk_status
+                  type: VARCHAR(20)
+                  defaultValue: pending
+              - column:
+                  name: parse_error_message
+                  type: VARCHAR(1000)
+              - column:
+                  name: parse_char_count
+                  type: INTEGER
+              - column:
+                  name: parse_page_count
+                  type: INTEGER
+              - column:
+                  name: process_result_file
+                  type: VARCHAR(500)
+              - column:
+                  name: last_parse_at
+                  type: TIMESTAMP
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: active
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+            indexes:
+              - index:
+                  name: idx_documents_collection_id
+                  tableName: documents
+                  columns:
+                    - column:
+                        name: collection_id
+              - index:
+                  name: idx_documents_owner_id
+                  tableName: documents
+                  columns:
+                    - column:
+                        name: owner_id
+              - index:
+                  name: idx_documents_department_id
+                  tableName: documents
+                  columns:
+                    - column:
+                        name: department_id

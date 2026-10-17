@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: rag-backend-testcontainers
+
+  datasource:
+    # These will be overridden by @DynamicPropertySource
+    url: jdbc:postgresql://localhost:5432/rag_medical
+    username: postgres
+    password: postgres123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+app:
+  default-users:
+    enabled: false
+  default-department:
+    enabled: false
+
+server:
+  port: 0
+
+rag:
+  embedding:
+    url: http://localhost:11434
+    model: bge-large-zh-v1.5
+    dimension: 1024
+    timeout: 5000
+
+  llm:
+    base-url: http://localhost:11434
+    model: qwen2.5:7b
+    temperature: 0.7
+    max-tokens: 2048
+    timeout: 30000
+
+  qdrant:
+    host: localhost
+    port: 6333
+    grpc-port: 6334
+    collection:
+      default-name: test_documents
+      vector-size: 1024
+      distance: Cosine
+
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket:
+      documents: test-documents
+      temp: test-temp
+
+  document:
+    chunk:
+      size: 500
+      overlap: 50
+    supported-types:
+      - pdf
+      - docx
+      - md
+      - txt
+
+  etcd:
+    url: http://localhost:2379
+
+  elasticsearch:
+    url: http://localhost:9200
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-must-be-256-bits
+  expiration: 3600000
+  refresh-expiration: 86400000
+
+logging:
+  level:
+    root: WARN
+    com.clacjz.medical.rag: DEBUG

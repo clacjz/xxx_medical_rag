@@ -1,0 +1,60 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rag-prod'
+    environment: 'production'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'rag-backend-production'
+    metrics_path: '/api/v1/actuator/prometheus'
+    static_configs:
+      - targets: ['rag-backend:8080']
+        labels:
+          app: 'rag-medical-backend'
+          environment: 'production'
+          instance: 'app-server'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'redis'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          app: 'redis'
+          environment: 'production'
+          instance: 'cache'
+    scrape_interval: 15s
+
+  - job_name: 'qdrant'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['rag-qdrant:6333']
+        labels:
+          app: 'qdrant'
+          environment: 'production'
+          instance: 'vector-search'
+    scrape_timeout: 10s
+    http_headers:
+      api-key: ${QDRANT_API_KEY}
+
+  - job_name: 'elasticsearch'
+    metrics_path: '/_nodes/stats/metrics'
+    static_configs:
+      - targets: ['localhost:9200']
+        labels:
+          app: 'elasticsearch'
+          environment: 'production'
+          instance: 'search'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+alerting:
+  alertmanagers: []
+
+rule_files: []

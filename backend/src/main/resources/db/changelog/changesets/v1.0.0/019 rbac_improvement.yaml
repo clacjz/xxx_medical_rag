@@ -1,0 +1,125 @@
+databaseChangeLog:
+
+  # RBAC权限架构改进 - v1.1.0
+  # 新增功能：
+  # 1. document_permissions表：新增department_ids和direct_user_ids字段
+  # 2. documents表：department_id字段扩展为VARCHAR(500)支持多部门
+  # 3. collections表：department_id字段扩展为VARCHAR(500)支持多部门
+  # 4. permission_audit_logs表：新增accessed_dept_id和match_reason字段
+
+
+  # 1. document_permissions表新增字段
+
+  - changeSet:
+      id: add-document-permissions-department-ids
+      author: system
+      changes:
+        - addColumn:
+            tableName: document_permissions
+            columns:
+              - column:
+                  name: department_ids
+                  type: VARCHAR(500)
+                  remarks: '部门ID列表，逗号分隔，COMPANY_WIDE时为0'
+              - column:
+                  name: direct_user_ids
+                  type: VARCHAR(500)
+                  remarks: '直接授权用户ID列表，逗号分隔'
+      rollback:
+        - dropColumn:
+            tableName: document_permissions
+            columnName: department_ids
+        - dropColumn:
+            tableName: document_permissions
+            columnName: direct_user_ids
+
+  # 2. documents表department_id字段扩展
+
+  - changeSet:
+      id: modify-documents-department-id-length
+      author: system
+      changes:
+        - sql:
+            sql: ALTER TABLE documents ALTER COLUMN department_id TYPE VARCHAR(500)
+      rollback:
+        - sql:
+            sql: ALTER TABLE documents ALTER COLUMN department_id TYPE VARCHAR(36)
+
+  # 3. collections表department_id字段扩展
+
+  - changeSet:
+      id: modify-collections-department-id-length
+      author: system
+      changes:
+        - sql:
+            sql: ALTER TABLE collections ALTER COLUMN department_id TYPE VARCHAR(500)
+      rollback:
+        - sql:
+            sql: ALTER TABLE collections ALTER COLUMN department_id TYPE VARCHAR(36)
+
+  # 4. permission_audit_logs表新增字段
+
+  - changeSet:
+      id: add-permission-audit-logs-access-info
+      author: system
+      changes:
+        - addColumn:
+            tableName: permission_audit_logs
+            columns:
+              - column:
+                  name: accessed_dept_id
+                  type: VARCHAR(100)
+                  remarks: '本次访问使用的部门身份'
+              - column:
+                  name: match_reason
+                  type: VARCHAR(100)
+                  remarks: '匹配原因：system_admin/owner/company_wide/department_intersection/direct_user'
+      rollback:
+        - dropColumn:
+            tableName: permission_audit_logs
+            columnName: accessed_dept_id
+        - dropColumn:
+            tableName: permission_audit_logs
+            columnName: match_reason
+
+  # 5. 为documents和collections表的department_id列添加注释（PostgreSQL特性）
+
+  - changeSet:
+      id: comment-documents-department-id
+      author: system
+      changes:
+        - sql:
+            sql: COMMENT ON COLUMN documents.department_id IS '部门ID列表，逗号分隔，支持多部门归属'
+      rollback:
+        - sql:
+            sql: COMMENT ON COLUMN documents.department_id IS '部门ID'
+
+  - changeSet:
+      id: comment-collections-department-id
+      author: system
+      changes:
+        - sql:
+            sql: COMMENT ON COLUMN collections.department_id IS '部门ID列表，逗号分隔，支持多部门归属'
+      rollback:
+        - sql:
+            sql: COMMENT ON COLUMN collections.department_id IS '部门ID'
+
+  - changeSet:
+      id: comment-document-permissions-department-ids
+      author: system
+      changes:
+        - sql:
+            sql: COMMENT ON COLUMN document_permissions.department_ids IS '部门ID列表，逗号分隔，COMPANY_WIDE时为0'
+      rollback:
+        - sql:
+            sql: COMMENT ON COLUMN document_permissions.department_ids IS '部门ID列表'
+
+  - changeSet:
+      id: comment-document-permissions-direct-user-ids
+      author: system
+      changes:
+        - sql:
+            sql: COMMENT ON COLUMN document_permissions.direct_user_ids IS '直接授权用户ID列表，逗号分隔'
+      rollback:
+        - sql:
+            sql: COMMENT ON COLUMN document_permissions.direct_user_ids IS '直接授权用户ID列表'

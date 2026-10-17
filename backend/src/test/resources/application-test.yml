@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: rag-backend-test
+
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+app:
+  default-users:
+    enabled: true
+    users:
+      - username: admin
+        password: admin123
+        email: admin@test.com
+        displayName: Test Admin
+        role: SYSTEM_ADMIN
+        enabled: true
+  default-department:
+    enabled: false
+    code: DEFAULT
+    name: 默认部门
+    description: 系统预设的默认部门
+
+server:
+  port: 0
+
+rag:
+  embedding:
+    url: http://localhost:8081
+    model: bge-large-zh-v1.5
+    dimension: 1024
+    timeout: 5000
+
+  llm:
+    base-url: http://localhost:11434
+    model: qwen2.5:7b
+    temperature: 0.7
+    max-tokens: 2048
+    timeout: 30000
+
+  qdrant:
+    host: localhost
+    port: 6333
+    grpc-port: 6334
+    collection:
+      default-name: test_documents
+      vector-size: 1024
+      distance: Cosine
+
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket:
+      documents: test-documents
+      temp: test-temp
+
+  document:
+    chunk:
+      size: 500
+      overlap: 50
+    supported-types:
+      - pdf
+      - docx
+      - md
+      - txt
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-must-be-256-bits
+  expiration: 3600000
+  refresh-expiration: 86400000
+
+logging:
+  level:
+    root: WARN
+    com.clacjz.medical.rag: DEBUG

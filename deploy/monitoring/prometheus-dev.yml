@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rag-dev'
+    environment: 'development'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'rag-backend-dev'
+    metrics_path: '/api/v1/actuator/prometheus'
+    static_configs:
+      - targets: ['rag-backend-dev:18080']
+        labels:
+          app: 'rag-medical-backend'
+          environment: 'development'
+          instance: 'server'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'redis'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          app: 'redis'
+          environment: 'development'
+          instance: 'server'
+    scrape_interval: 15s
+
+  - job_name: 'qdrant'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:6333']
+        labels:
+          app: 'qdrant'
+          environment: 'development'
+          instance: 'server'
+    scrape_timeout: 10s
+
+  - job_name: 'elasticsearch'
+    metrics_path: '/_prometheus/metrics'
+    static_configs:
+      - targets: ['localhost:9200']
+        labels:
+          app: 'elasticsearch'
+          environment: 'development'
+          instance: 'server'
+    scrape_timeout: 10s
+
+alerting:
+  alertmanagers: []
+
+rule_files: []

@@ -1,0 +1,359 @@
+spring:
+  application:
+    name: rag-medical-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  version: ${project.version:1.0.0}
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  task:
+    execution:
+      pool:
+        core-size: 8
+        max-size: 16
+        queue-capacity: 100
+        thread-name-prefix: rag-async-
+      shutdown:
+        await-termination: true
+        await-termination-period: 60s
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:rag_medical}?characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8_general_ci&characterSetResults=UTF-8
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: public
+    drop-first: false
+
+  mybatis-plus:
+    type-aliases-package: com.clacjz.medical.rag.model.entity
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    global-config:
+      db-config:
+        id-type: assign_id
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      lettuce:
+        pool:
+          enabled: true
+          max-active: ${REDIS_POOL_MAX_ACTIVE:32}
+          max-idle: ${REDIS_POOL_MAX_IDLE:16}
+          min-idle: ${REDIS_POOL_MIN_IDLE:8}
+          max-wait: ${REDIS_POOL_MAX_WAIT:3000ms}
+          test-on-borrow: ${REDIS_POOL_TEST_ON_BORROW:true}
+          test-while-idle: ${REDIS_POOL_TEST_WHILE_IDLE:true}
+        shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT:100ms}
+
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+    connection-timeout: ${ELASTICSEARCH_CONNECTION_TIMEOUT:5000}
+    socket-timeout: ${ELASTICSEARCH_SOCKET_TIMEOUT:30000}
+    max-connections: ${ELASTICSEARCH_MAX_CONNECTIONS:100}
+    max-connections-per-route: ${ELASTICSEARCH_MAX_CONNECTIONS_PER_ROUTE:10}
+    index-prefix: ${ELASTICSEARCH_INDEX_PREFIX:medical_rag_}
+
+  etcd:
+    uris: ${ETCD_URIS:http://localhost:2379}
+    username: ${ETCD_USERNAME:}
+    password: ${ETCD_PASSWORD:}
+    timeout: ${ETCD_TIMEOUT:5000}
+    connection-timeout: ${ETCD_CONNECTION_TIMEOUT:5000}
+    namespace: ${ETCD_NAMESPACE:}
+    lock:
+      max-retries: ${ETCD_LOCK_MAX_RETRIES:3}
+      retry-delay-ms: ${ETCD_LOCK_RETRY_DELAY_MS:100}
+      max-lock-wait-time-ms: ${ETCD_LOCK_MAX_WAIT_TIME_MS:30000}
+    watch:
+      max-retries: ${ETCD_WATCH_MAX_RETRIES:3}
+      retry-delay-ms: ${ETCD_WATCH_RETRY_DELAY_MS:1000}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+app:
+  host: ${APP_HOST:0.0.0.0}
+  port: ${APP_PORT:8080}
+  version: ${project.version:1.0.0}
+  description: RAG Medical Knowledge Base Backend System
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
+    max-age: ${CORS_MAX_AGE:3600}
+  security:
+    # 默认关闭，阻止 IP 欺骗攻击；仅在有可信反向代理时开启
+    trust-proxy-headers: ${TRUST_PROXY_HEADERS:false}
+    # 可信代理 IP 列表（仅在 trust-proxy-headers=true 时生效）
+    # 示例: 10.0.0.1,10.0.0.2
+    trusted-proxies: ${TRUSTED_PROXIES:}
+  default-users:
+    enabled: ${DEFAULT_USERS_ENABLED:true}
+    users:
+      - username: ${DEFAULT_ADMIN_USERNAME:admin}
+        password: ${DEFAULT_ADMIN_PASSWORD:admin123}
+        email: ${DEFAULT_ADMIN_EMAIL:admin@example.com}
+        displayName: ${DEFAULT_ADMIN_DISPLAY_NAME:系统管理员}
+        role: ${DEFAULT_ADMIN_ROLE:SYSTEM_ADMIN}
+        enabled: ${DEFAULT_ADMIN_ENABLED:true}
+      - username: ${DEFAULT_KBADMIN_USERNAME:kbadmin}
+        password: ${DEFAULT_KBADMIN_PASSWORD:kbadmin123}
+        email: ${DEFAULT_KBADMIN_EMAIL:kbadmin@example.com}
+        displayName: ${DEFAULT_KBADMIN_DISPLAY_NAME:部门管理员}
+        role: ${DEFAULT_KBADMIN_ROLE:DEPT_ADMIN}
+        enabled: ${DEFAULT_KBADMIN_ENABLED:true}
+      - username: ${DEFAULT_USER_USERNAME:user}
+        password: ${DEFAULT_USER_PASSWORD:user123}
+        email: ${DEFAULT_USER_EMAIL:user@example.com}
+        displayName: ${DEFAULT_USER_DISPLAY_NAME:普通用户}
+        role: ${DEFAULT_USER_ROLE:DEPT_USER}
+        enabled: ${DEFAULT_USER_ENABLED:true}
+  default-department:
+    enabled: ${DEFAULT_DEPARTMENT_ENABLED:true}
+    code: ${DEFAULT_DEPARTMENT_CODE:DEFAULT}
+    name: ${DEFAULT_DEPARTMENT_NAME:默认部门}
+    description: ${DEFAULT_DEPARTMENT_DESCRIPTION:系统预设的默认部门，所有未分配部门的用户将自动加入此部门}
+    parentId: ${DEFAULT_DEPARTMENT_PARENT_ID:}
+    auto-assign-new-users: ${DEFAULT_DEPARTMENT_AUTO_ASSIGN:true}
+    auto-assign-unassigned-users: ${DEFAULT_DEPARTMENT_AUTO_ASSIGN_EXISTING:false}
+
+server:
+  port: ${app.port}
+  servlet:
+    context-path: /api/v1
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
+
+rag:
+  embedding:
+    # Embedding服务地址: AI SDK服务地址
+    host: ${EMBEDDING_HOST:localhost}
+    # Embedding服务端口 (AI SDK FastAPI默认28347)
+    port: ${EMBEDDING_PORT:28347}
+    # 完整的Embedding服务URL（由host:port自动拼接）
+    url: http://${rag.embedding.host}:${rag.embedding.port}
+    # Embedding模型名称 (BGE-M3: 8192 max sequence length)
+    model: ${EMBEDDING_MODEL:BGE-M3}
+    # 向量维度（根据模型决定）
+    dimension: ${EMBEDDING_DIMENSION:1024}
+    # 最大序列长度（BGE-M3: 8192）
+    max-sequence-length: ${EMBEDDING_MAX_SEQUENCE_LENGTH:8192}
+    # 默认分块大小（字符数，约 2000 tokens，保留安全边界）
+    default-chunk-size: ${EMBEDDING_DEFAULT_CHUNK_SIZE:4000}
+    # 默认分块重叠（字符数，约 200 tokens）
+    default-chunk-overlap: ${EMBEDDING_DEFAULT_CHUNK_OVERLAP:400}
+    # 连接超时时间（毫秒）
+    timeout: ${EMBEDDING_TIMEOUT:10000}
+
+  # ── 异步线程池配置 ──────────────────────────────────
+  thread-pool:
+    document-parser:
+      # 文档解析并发数（同时处理多少份 PDF 的 parse+chunk+embed+store）
+      # 2026-06-08 Bug#2 修复: 从 4 提升到 8，避免大文档 OCR 时长阻塞全部线程
+      core-size: ${DOC_PARSER_CORE_SIZE:8}
+      max-size: ${DOC_PARSER_MAX_SIZE:8}
+      queue-capacity: ${DOC_PARSER_QUEUE:20}
+    embedding:
+      # Embedding 并发数（chunk → vector 时的 HTTP 调用并发）
+      core-size: ${EMBEDDING_CORE_SIZE:4}
+      max-size: ${EMBEDDING_MAX_SIZE:4}
+      queue-capacity: ${EMBEDDING_QUEUE:64}
+
+  # LLM Service Configuration (大语言模型服务) - AI SDK统一服务地址
+  llm:
+    # LLM服务地址: 本地开发用localhost
+    host: ${LLM_HOST:localhost}
+    # LLM服务端口 (AI SDK默认28347)
+    port: ${LLM_PORT:28347}
+    # 完整的LLM服务URL
+    base-url: http://${rag.llm.host}:${rag.llm.port}
+    # 使用的模型名称
+    model: ${LLM_MODEL:Qwen3.6-27B}
+    # 生成温度参数（0.0-1.0，越低越确定性）
+    temperature: ${LLM_TEMPERATURE:0.7}
+    # 最大生成token数
+    max-tokens: ${LLM_MAX_TOKENS:2048}
+    # 思考模式最大token限制
+    thinking-max-tokens: ${LLM_THINKING_MAX_TOKENS:4096}
+    # 连接超时时间（毫秒）
+    timeout: ${LLM_TIMEOUT:60000}
+
+  # Qdrant Vector Database Configuration (向量数据库)
+  qdrant:
+    # Qdrant服务IP地址
+    host: ${QDRANT_HOST:localhost}
+    # Qdrant REST API端口
+    port: ${QDRANT_PORT:6333}
+    # Qdrant gRPC端口（用于高性能向量检索）
+    grpc-port: ${QDRANT_GRPC_PORT:6334}
+    # API Key for authentication
+    api-key: ${QDRANT_API_KEY:abc1234923941qq9}
+    # 连接超时时间（秒）
+    timeout: ${QDRANT_TIMEOUT:5}
+    # 最大连接数
+    max-connections: ${QDRANT_MAX_CONNECTIONS:32}
+    # 空闲超时时间（秒）
+    idle-timeout: ${QDRANT_IDLE_TIMEOUT:300}
+    # 重试配置
+    retry:
+      # 最大重试次数
+      max-attempts: ${QDRANT_RETRY_MAX_ATTEMPTS:3}
+      # 初始延迟时间（毫秒）
+      initial-delay: ${QDRANT_RETRY_INITIAL_DELAY:1000}
+      # 最大延迟时间（毫秒）
+      max-delay: ${QDRANT_RETRY_MAX_DELAY:10000}
+      # 延迟倍数
+      multiplier: ${QDRANT_RETRY_MULTIPLIER:2.0}
+    collection:
+      # 默认集合名称
+      default-name: ${QDRANT_COLLECTION:medical_documents}
+      # 向量维度（必须与Embedding维度一致）
+      vector-size: ${QDRANT_VECTOR_SIZE:1024}
+      # 距离度量方式（Cosine/Euclid/Dot）
+      distance: ${QDRANT_DISTANCE:Cosine}
+
+  # MinIO Object Storage Configuration (对象存储)
+  minio:
+    # MinIO服务IP地址
+    host: ${MINIO_HOST:localhost}
+    # MinIO服务端口
+    port: ${MINIO_PORT:9000}
+    # MinIO API地址（可选自定义路径）
+    endpoint: ${MINIO_ENDPOINT:http://${rag.minio.host}:${rag.minio.port}}
+    # Access Key（用户名）
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    # Secret Key（密码）
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket:
+      # 文档存储桶名称
+      documents: ${MINIO_BUCKET_DOCUMENTS:rag-documents}
+      # 临时文件存储桶名称
+      temp: ${MINIO_BUCKET_TEMP:rag-temp}
+
+  # Document Processing Configuration (文档处理配置)
+  document:
+    chunk:
+      # 分块大小（字符数）
+      size: ${DOC_CHUNK_SIZE:500}
+      # 分块重叠大小（字符数）
+      overlap: ${DOC_CHUNK_OVERLAP:50}
+    # 支持的文档类型
+    supported-types: ${DOC_SUPPORTED_TYPES:pdf,docx,md,txt}
+
+  # OCR Configuration (AI SDK统一服务地址)
+  ocr:
+    # AI SDK GLM-OCR 主服务地址 (本地开发用localhost)
+    service-url: ${OCR_SERVICE_URL:http://localhost:28347}
+    # AI SDK Qwen 兜底服务地址
+    fallback-url: ${OCR_FALLBACK_URL:http://localhost:28347}
+    # 请求超时时间（毫秒）
+    timeout: ${OCR_TIMEOUT:30000}
+    # 缓存TTL（分钟）
+    max-cache-ttl: ${OCR_CACHE_TTL:30}
+    # 最大预览页数
+    max-pages: ${OCR_MAX_PAGES:10}
+    # 是否启用OCR功能
+    enabled: ${OCR_ENABLED:true}
+
+    # 批量 OCR
+    # 是否启用批量OCR
+    batch-enabled: ${OCR_BATCH_ENABLED:true}
+    # 每批次页数（与 AI SDK batch_size 对齐）
+    batch-size: ${OCR_BATCH_SIZE:4}
+    # PDF 渲染 DPI（50-300）
+    batch-image-dpi: ${OCR_BATCH_DPI:150}
+    # JPEG 压缩质量（0.1-1.0）
+    batch-image-quality: ${OCR_BATCH_QUALITY:0.85}
+    # 图片格式：jpeg 或 png
+    batch-image-format: ${OCR_BATCH_IMAGE_FORMAT:jpeg}
+    # Batch 请求专用超时（毫秒）
+    batch-read-timeout: ${OCR_BATCH_READ_TIMEOUT:600000}
+    # 内存 PDF 缓存最大条数（LRU）
+    batch-cache-max-size: ${OCR_BATCH_CACHE_MAX_SIZE:20}
+
+jwt:
+  # JWT签名密钥（生产环境必须使用复杂密钥）
+  secret: ${JWT_SECRET:dev-key-for-jwt-testing-only-not-real-256bit-production}
+  # Access Token过期时间（毫秒，默认2小时）
+  expiration: ${JWT_EXPIRATION:600000}
+  # Refresh Token过期时间（毫秒，默认7天）
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:3600000}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        metrics:
+          export:
+            enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging Configuration
+logging:
+  base-path: ${LOGGING_BASE_PATH:${user.home}/logs}
+  level:
+    root: INFO
+    com.clacjz.medical.rag: DEBUG
+    org.springframework.ai: INFO
+    org.springframework.web: INFO
+    # MyBatis Plus / MyBatis 日志
+    com.baomidou.mybatisplus: DEBUG
+    com.clacjz.medical.rag.mapper: TRACE
+    org.apache.ibatis: DEBUG
+    org.apache.ibatis.session: DEBUG
+    # PostgreSQL 驱动日志（查看执行参数）
+    org.postgresql: INFO
+    org.postgresql.jdbc: INFO
+    org.postgresql.core: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/${spring.application.name}.log
+    max-size: 100MB
+    max-history: 30

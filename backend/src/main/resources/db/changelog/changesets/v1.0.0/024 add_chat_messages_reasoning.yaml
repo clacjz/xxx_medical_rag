@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-chat-messages-reasoning-column
+      author: system
+      changes:
+        - addColumn:
+            tableName: chat_messages
+            columns:
+              - column:
+                  name: reasoning
+                  type: TEXT
+                  constraints:
+                    nullable: true
+                  remarks: "AI思考过程内容，仅流式生成时记录"

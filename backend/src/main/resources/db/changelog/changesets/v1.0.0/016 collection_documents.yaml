@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-collection-documents-table
+      author: system
+      changes:
+        - createTable:
+            tableName: collection_documents
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: collection_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: department_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: added_by
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processing_status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                  defaultValue: PENDING
+              - column:
+                  name: processing_priority
+                  type: INTEGER
+                  defaultValue: 0
+              - column:
+                  name: processing_error
+                  type: TEXT
+              - column:
+                  name: processed_at
+                  type: TIMESTAMP
+              - column:
+                  name: added_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+            indexes:
+              - index:
+                  name: idx_collection_documents_collection_id
+                  tableName: collection_documents
+                  columns:
+                    - column:
+                        name: collection_id
+              - index:
+                  name: idx_collection_documents_document_id
+                  tableName: collection_documents
+                  columns:
+                    - column:
+                        name: document_id

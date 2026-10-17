@@ -1,0 +1,38 @@
+{
+  "serverUrl": "http://{{ip}}:{{port}}/api/v1",
+  "outPath": "./target/doc",
+  "coverOld": true,
+  "createDebugPage": true,
+  "allInOne": true,
+  "style": "xt256",
+  "packageName": "com.clacjz.medical.rag.controller",
+  "showAuthor": true,
+  "version": "1.0.0",
+  "postman": {
+    "enable": true,
+    "outPath": "./target/postman",
+    "folderName": "medical_rag_api",
+    "splitFolder": true,
+    "encoding": "utf-8"
+  },
+  "requestHeaders": [
+    {
+      "name": "Content-Type",
+      "type": "string",
+      "defaultValue": "application/json",
+      "required": true,
+      "remark": "请求内容类型"
+    },
+    {
+      "name": "Authorization",
+      "type": "string",
+      "defaultValue": "Bearer {{token}}",
+      "required": false,
+      "remark": "JWT认证Token，登录后获取"
+    }
+  ],
+  "requestParamRemark": {
+    "page": "页码，从1开始",
+    "pageSize": "每页数量"
+  }
+}

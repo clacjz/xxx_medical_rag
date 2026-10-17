@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rag-local'
+    environment: 'local-docker'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'rag-backend-local'
+    metrics_path: '/api/v1/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:18080']
+        labels:
+          app: 'rag-medical-backend'
+          environment: 'local-docker'
+          instance: 'localhost'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'redis'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          app: 'redis'
+          environment: 'local-docker'
+          instance: 'localhost'
+    scrape_interval: 15s
+
+  - job_name: 'qdrant'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:16333']
+        labels:
+          app: 'qdrant'
+          environment: 'local-docker'
+          instance: 'localhost'
+    scrape_timeout: 10s
+
+  - job_name: 'elasticsearch'
+    metrics_path: '/_prometheus/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:19200']
+        labels:
+          app: 'elasticsearch'
+          environment: 'local-docker'
+          instance: 'localhost'
+    scrape_timeout: 10s
+
+alerting:
+  alertmanagers: []
+
+rule_files: []

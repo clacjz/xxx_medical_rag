@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="rag-backend"/>
+    <springProperty scope="context" name="LOG_PATH" source="logging.file.name" defaultValue="logs/${APP_NAME}.log"/>
+    <springProperty scope="context" name="LOG_BASE_PATH" source="logging.base-path" defaultValue="logs"/>
+
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"/>
+    <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %msg%n"/>
+    <property name="HIBERNATE_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_BASE_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_BASE_PATH}/${APP_NAME}-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_BASE_PATH}/${APP_NAME}-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>1024</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>512</queueSize>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <!-- Hibernate专用控制台Appender - 单行输出 -->
+    <appender name="HIBERNATE_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${HIBERNATE_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <immediateFlush>true</immediateFlush>
+    </appender>
+
+    <!-- Hibernate专用文件Appender - 单行输出 -->
+    <appender name="HIBERNATE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_BASE_PATH}/${APP_NAME}-hibernate.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_BASE_PATH}/${APP_NAME}-hibernate.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+    </appender>
+
+    <!-- Hibernate异步文件Appender -->
+    <appender name="ASYNC_HIBERNATE_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>512</queueSize>
+        <appender-ref ref="HIBERNATE_FILE"/>
+    </appender>
+
+    <!-- HikariCP日志配置 - 防止数据库密码泄露 -->
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="com.zaxxer.hikari.pool.HikariPool" level="INFO"/>
+    <logger name="com.zaxxer.hikari.impl.ConnectionTrace" level="INFO"/>
+    <logger name="com.zaxxer.hikari.util.DriverDataSource" level="INFO"/>
+
+    <!-- DataSource URL日志脱敏 -->
+    <logger name="com.zaxxer.hikari.HikariConfig" level="INFO"/>
+
+    <!-- Spring DataSource日志配置 -->
+    <logger name="org.springframework.jdbc.datasource" level="WARN"/>
+
+    <springProfile name="dev">
+        <logger name="com.clacjz.medical.rag" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.ai" level="DEBUG"/>
+
+        <!-- HikariCP在dev环境可以开启DEBUG但禁止输出密码 -->
+        <logger name="com.zaxxer.hikari" level="INFO"/>
+        <logger name="com.zaxxer.hikari.pool.HikariPool" level="INFO"/>
+
+        <!-- Spring DataSource日志 -->
+        <logger name="org.springframework.jdbc.datasource" level="INFO"/>
+
+        <!-- Hibernate详细日志配置 - DEBUG模式 -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.SQL-DSL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE"/>
+        <logger name="org.hibernate.SQL语句" level="DEBUG"/>
+        <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="DEBUG"/>
+        <logger name="org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl" level="DEBUG"/>
+        <logger name="org.hibernate.jdbc.ConnectionManager" level="DEBUG"/>
+        <logger name="org.hibernate.jdbc.JdbcCoordinator" level="DEBUG"/>
+        <logger name="org.hibernate.persister.entity.AbstractEntityPersister" level="DEBUG"/>
+        <logger name="org.hibernate.loader.entity.AbstractEntityLoader" level="DEBUG"/>
+        <logger name="org.hibernate.stat" level="DEBUG"/>
+        <logger name="org.hibernate.cache" level="DEBUG"/>
+        <logger name="org.hibernate.event.internal" level="DEBUG"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+        <logger name="org.hibernate.orm.jdbc.extract" level="TRACE"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+
+        <!-- Hibernate日志单独输出到专用appender -->
+        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.SQL-DSL" level="DEBUG" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="test">
+        <logger name="com.clacjz.medical.rag" level="DEBUG"/>
+        <logger name="org.springframework" level="INFO"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <logger name="com.clacjz.medical.rag" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.ai" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="local">
+        <logger name="com.clacjz.medical.rag" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.ai" level="DEBUG"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="docker">
+        <logger name="com.clacjz.medical.rag" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.ai" level="DEBUG"/>
+        
+        <!-- Hibernate详细日志配置 - DEBUG模式 -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.SQL-DSL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE"/>
+        <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="DEBUG"/>
+        <logger name="org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl" level="DEBUG"/>
+        <logger name="org.hibernate.jdbc.ConnectionManager" level="DEBUG"/>
+        <logger name="org.hibernate.jdbc.JdbcCoordinator" level="DEBUG"/>
+        <logger name="org.hibernate.persister.entity.AbstractEntityPersister" level="DEBUG"/>
+        <logger name="org.hibernate.loader.entity.AbstractEntityLoader" level="DEBUG"/>
+        <logger name="org.hibernate.stat" level="DEBUG"/>
+        <logger name="org.hibernate.cache" level="DEBUG"/>
+        <logger name="org.hibernate.event.internal" level="DEBUG"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+        <logger name="org.hibernate.orm.jdbc.extract" level="TRACE"/>
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+
+        <!-- Hibernate日志单独输出到专用appender -->
+        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.SQL-DSL" level="DEBUG" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+        <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE" additivity="false">
+            <appender-ref ref="HIBERNATE_CONSOLE"/>
+            <appender-ref ref="ASYNC_HIBERNATE_FILE"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="!dev &amp; !test &amp; !prod &amp; !local &amp; !docker">
+        <logger name="com.clacjz.medical.rag" level="INFO"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+    </springProfile>
+</configuration>

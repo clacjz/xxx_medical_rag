@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-add-document-chunks
+      author: system
+      changes:
+        - createTable:
+            tableName: document_chunks
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: document_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: point_id
+                  type: varchar(100)
+                  remarks: 'Qdrant point ID'
+              - column:
+                  name: chunk_index
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: text
+                  remarks: 'Chunk text content'
+              - column:
+                  name: chunk_size
+                  type: int
+              - column:
+                  name: start_pos
+                  type: int
+              - column:
+                  name: end_pos
+                  type: int
+              - column:
+                  name: start_page
+                  type: int
+                  defaultValue: 0
+              - column:
+                  name: end_page
+                  type: int
+                  defaultValue: 0
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValue: '{}'
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: current_timestamp
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: current_timestamp
+        - addForeignKeyConstraint:
+            baseTableName: document_chunks
+            baseColumnNames: document_id
+            referencedTableName: documents
+            referencedColumnNames: id
+            constraintName: fk_chunks_document
+        - createIndex:
+            tableName: document_chunks
+            indexName: idx_chunks_document
+            columns:
+              - column:
+                  name: document_id
+        - createIndex:
+            tableName: document_chunks
+            indexName: idx_chunks_point_id
+            columns:
+              - column:
+                  name: point_id
+        - createIndex:
+            tableName: document_chunks
+            indexName: idx_chunks_index
+            columns:
+              - column:
+                  name: chunk_index

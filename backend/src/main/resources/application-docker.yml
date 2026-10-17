@@ -1,0 +1,174 @@
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+    allowed-headers: Authorization,Content-Type,X-Requested-With,X-Api-Key,X-CSRF-Token
+    exposed-headers: Authorization,X-Total-Count,X-Page-Number
+    allow-credentials: true
+    max-age: 3600
+  default-users:
+    enabled: ${DEFAULT_USERS_ENABLED:true}
+    users:
+      - username: ${DEFAULT_ADMIN_USERNAME:admin}
+        password: ${DEFAULT_ADMIN_PASSWORD:admin123}
+        email: ${DEFAULT_ADMIN_EMAIL:admin@example.com}
+        displayName: ${DEFAULT_ADMIN_DISPLAY_NAME:系统管理员}
+        role: ${DEFAULT_ADMIN_ROLE:SYSTEM_ADMIN}
+        enabled: ${DEFAULT_ADMIN_ENABLED:true}
+      - username: ${DEFAULT_KBADMIN_USERNAME:kbadmin}
+        password: ${DEFAULT_KBADMIN_PASSWORD:kbadmin123}
+        email: ${DEFAULT_KBADMIN_EMAIL:kbadmin@example.com}
+        displayName: ${DEFAULT_KBADMIN_DISPLAY_NAME:部门管理员}
+        role: ${DEFAULT_KBADMIN_ROLE:DEPT_ADMIN}
+        enabled: ${DEFAULT_KBADMIN_ENABLED:true}
+      - username: ${DEFAULT_USER_USERNAME:user}
+        password: ${DEFAULT_USER_PASSWORD:user123}
+        email: ${DEFAULT_USER_EMAIL:user@example.com}
+        displayName: ${DEFAULT_USER_DISPLAY_NAME:普通用户}
+        role: ${DEFAULT_USER_ROLE:DEPT_USER}
+        enabled: ${DEFAULT_USER_ENABLED:true}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:15432/rag_medical?characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8_general_ci&characterSetResults=UTF-8&TimeZone=Asia/Shanghai
+    username: postgres
+    password: postgres123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jackson:
+    time-zone: Asia/Shanghai
+
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Shanghai
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:16379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      lettuce:
+        pool:
+          enabled: true
+          max-active: ${REDIS_POOL_MAX_ACTIVE:32}
+          max-idle: ${REDIS_POOL_MAX_IDLE:16}
+          min-idle: ${REDIS_POOL_MIN_IDLE:8}
+          max-wait: ${REDIS_POOL_MAX_WAIT:3000ms}
+          test-on-borrow: ${REDIS_POOL_TEST_ON_BORROW:true}
+          test-while-idle: ${REDIS_POOL_TEST_WHILE_IDLE:true}
+        shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT:100ms}
+
+  etcd:
+    uris: http://localhost:12379
+    timeout: 5000
+    username: root
+    password: ${ETCD_PASSWORD:}
+
+  elasticsearch:
+    uris: http://localhost:19200
+    connection-timeout: 5000
+    socket-timeout: 30000
+
+rag:
+  embedding:
+    host: ${EMBEDDING_HOST:localhost}
+    port: ${EMBEDDING_PORT:28347}
+    url: http://${rag.embedding.host}:${rag.embedding.port}
+    model: ${EMBEDDING_MODEL:bge-large-zh-v1.5}
+    dimension: 1024
+    timeout: 10000
+
+  llm:
+    host: ${LLM_HOST:localhost}
+    port: ${LLM_PORT:28347}
+    base-url: http://${rag.llm.host}:${rag.llm.port}
+    model: ${LLM_MODEL:Qwen3.6-27B}
+    temperature: 0.7
+    max-tokens: 20480
+    timeout: 60000
+
+  qdrant:
+    host: localhost
+    port: 16333
+    grpc-port: 16334
+    api-key: ${QDRANT_API_KEY:qdrant_secret_key_2024}
+    timeout: 5
+    max-connections: 32
+    idle-timeout: 300
+    retry:
+      max-attempts: 3
+      initial-delay: 1000
+      max-delay: 10000
+      multiplier: 2.0
+    collection:
+      default-name: medical_documents
+      vector-size: 1024
+      distance: Cosine
+
+  minio:
+    host: localhost
+    port: 29000
+    endpoint: http://localhost:29000
+    access-key: minioadmin
+    secret-key: ${MINIO_SECRET_KEY:minioadmin123}
+    bucket:
+      documents: rag-documents
+      temp: rag-temp
+
+  document:
+    chunk:
+      size: 500
+      overlap: 50
+    supported-types: pdf,docx,md,txt
+
+  parser:
+    temp-dir: /tmp/rag-parser
+    max-file-size: 104857600
+    supported-types: pdf,docx,md,txt
+    chunk:
+      size: 500
+      overlap: 50
+    cleanup:
+      enabled: true
+      retention-hours: 24
+
+  # OCR Configuration (AI SDK统一服务地址28347)
+  ocr:
+    service-url: ${OCR_SERVICE_URL:http://localhost:28347}
+    fallback-url: ${OCR_FALLBACK_URL:http://localhost:28347}
+    timeout: ${OCR_TIMEOUT:30000}
+    max-cache-ttl: ${OCR_CACHE_TTL:30}
+    max-pages: ${OCR_MAX_PAGES:10}
+    enabled: ${OCR_ENABLED:true}
+    # 批量 OCR
+    batch-enabled: ${OCR_BATCH_ENABLED:true}
+    batch-size: ${OCR_BATCH_SIZE:4}
+    batch-read-timeout: ${OCR_BATCH_READ_TIMEOUT:600000}
+
+jwt:
+  secret: ${JWT_SECRET:docker-dev-key-for-testing-only-not-real-production-256bit}
+  expiration: 7200000
+  refresh-expiration: 604800000
+
+server:
+  port: 18080
+
+logging:
+  level:
+    com.clacjz.medical.rag: DEBUG
+    com.clacjz.medical.rag.mapper: TRACE
+    com.baomidou.mybatisplus: DEBUG
+    org.apache.ibatis: DEBUG
+    org.apache.ibatis.session: DEBUG
+    org.postgresql: INFO
+    org.postgresql.jdbc: DEBUG

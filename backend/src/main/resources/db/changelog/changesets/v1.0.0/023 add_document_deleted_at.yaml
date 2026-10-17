@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-document-deleted-at
+      author: system
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+                  defaultValue: null
+                  constraints:
+                    nullable: true

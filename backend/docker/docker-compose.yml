@@ -1,0 +1,322 @@
+version: '3.8'
+
+# ============================================
+# RAG Medical Backend - 本地Docker完整环境
+# 使用方式: docker-compose --env-file .env.local -f docker-compose.yml up -d
+# ============================================
+
+services:
+  # ============================================
+  # PostgreSQL 数据库
+  # ============================================
+  postgres:
+    container_name: rag-postgres
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rag_medical}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      PGTZ: Asia/Shanghai
+    command: postgres -c timezone=Asia/Shanghai
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rag-network
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ============================================
+  # Redis 缓存
+  # ============================================
+  redis:
+    container_name: rag-redis
+    image: redis:8.4.0-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-16379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rag-network
+    mem_limit: 384m
+    cpus: 0.25
+
+  # ============================================
+  # Qdrant 向量数据库
+  # ============================================
+  qdrant:
+    container_name: rag-qdrant
+    image: qdrant/qdrant:v1.16.3
+    restart: unless-stopped
+    environment:
+      - QDRANT__CONFIG_PATH=/qdrant/config/config.yaml
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-qdrant_secret_key_2024}
+      - QDRANT__SERVICE__ENABLED=true
+      - QDRANT__SERVICE__READ_ONLY=false
+      - QDRANT__TELEMETRY_DISABLED=true
+      - QDRANT__CLUSTER__ENABLED=false
+      - QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage
+      - QDRANT__STORAGE__SNAPSHOT_SHARDS=1
+      - QDRANT__STORAGE__BUILD_SNAPSHOT_MECHANISM_ARCHIVING=false
+      - QDRANT__STORAGE__DEFAULT_NUM_FRAMES=1
+      - QDRANT__STORAGE__OPTIMIZE_STARTUP=true
+      - QDRANT__STORAGE__MEMMAP_INDEX=true
+      - QDRANT__STORAGE__HNSW_INDEX__M=16
+      - QDRANT__STORAGE__HNSW_INDEX__EF_CONSTRUCT=100
+      - QDRANT__STORAGE__HNSW_INDEX__MAX_INDEXING_THREADS=0
+      - QDRANT__STORAGE__WAL__ENABLED=true
+      - QDRANT__STORAGE__WAL__WAL_CAPACITY_MB=32
+      - QDRANT__STORAGE__WAL__WAL_RESERGE_MB=1
+    ports:
+      - "${QDRANT_PORT:-16333}:6333"
+      - "${QDRANT_GRPC_PORT:-16334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:6333/healthz || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - rag-network
+    mem_limit: 2g
+    cpus: 2.0
+
+  # ============================================
+  # MinIO 对象存储
+  # ============================================
+  minio:
+    container_name: rag-minio
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_PORT:-29000}:9000"
+      - "29001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - rag-network
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ============================================
+  # etcd 配置中心
+  # ============================================
+  etcd:
+    container_name: rag-etcd
+    image: quay.io/coreos/etcd:v3.6.7
+    restart: unless-stopped
+    command: >
+      etcd
+      --data-dir=/etcd-data
+      --name=rag-etcd
+      --listen-client-urls=http://0.0.0.0:2379
+      --advertise-client-urls=http://0.0.0.0:2379
+      --listen-peer-urls=http://0.0.0.0:2380
+      --initial-advertise-peer-urls=http://0.0.0.0:2380
+      --initial-cluster=rag-etcd=http://0.0.0.0:2380
+      --initial-cluster-state=new
+      --initial-cluster-token=rag-etcd-token
+      --auto-compaction-mode=revision
+      --auto-compaction-retention=1000
+    ports:
+      - "${ETCD_PORT:-12379}:2379"
+      - "12380:2380"
+    volumes:
+      - etcd_data:/etcd-data
+    healthcheck:
+      test: ["CMD-SHELL", "ETCDCTL_API=3 etcdctl --endpoints=localhost:2379 endpoint health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - rag-network
+    mem_limit: 256m
+    cpus: 0.25
+
+  # ============================================
+  # Elasticsearch 全文搜索引擎
+  # ============================================
+  elasticsearch:
+    container_name: rag-elasticsearch
+    image: elasticsearch:8.12.0
+    restart: unless-stopped
+    environment:
+      - node.name=rag-elasticsearch-node
+      - cluster.name=rag-elasticsearch-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -XX:MaxDirectMemorySize=256m"
+      - path.data=/usr/share/elasticsearch/data
+      - path.logs=/usr/share/elasticsearch/logs
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - indices.memory.index_buffer_size=10%
+      - indices.queries.cache.size=10%
+    ports:
+      - "${ELASTICSEARCH_PORT:-19200}:9200"
+      - "19300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - elasticsearch_logs:/usr/share/elasticsearch/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - rag-network
+    mem_limit: 1g
+    cpus: 1.0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================
+  # Prometheus 监控
+  # ============================================
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION:-v2.47.0}
+    container_name: rag-monitoring-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-19090}:9090"
+    restart: unless-stopped
+    volumes:
+      - ../monitoring/prometheus-local.yml:/etc/prometheus/prometheus.yml:ro
+      - prom_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=15d'
+      - '--query.max-concurrency=10'
+      - '--web.enable-admin-api'
+    user: root
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - rag-network
+    mem_limit: 1g
+    cpus: 1.0
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================
+  # Grafana 监控面板
+  # ============================================
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-10.4.0}
+    container_name: rag-monitoring-grafana
+    ports:
+      - "${GRAFANA_PORT:-13000}:3000"
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-grafana123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:${GRAFANA_PORT:-13000}
+      - GF_DEFAULT_LOCALE=zh-Hans
+      - GF_DEFAULT_TIMEZONE=Asia/Shanghai
+      - TZ=Asia/Shanghai
+      - GF_LOG_MODE=console
+      - GF_LOG_LEVEL=info
+    volumes:
+      - ../monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ../monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../monitoring/dashboards/json:/etc/grafana/provisioning/dashboards/json:ro
+      - grafana_data:/var/lib/grafana
+    user: "472"
+    networks:
+      - rag-network
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ============================================
+  # Redis Exporter (for Prometheus)
+  # ============================================
+  redis-exporter:
+    image: oliver006/redis_exporter:${REDIS_EXPORTER_VERSION:-v1.61.0}
+    container_name: rag-monitoring-redis-exporter
+    ports:
+      - "${REDIS_EXPORTER_PORT:-19121}:9121"
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis://${REDIS_HOST:-localhost}:${REDIS_PORT:-16379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - rag-network
+    mem_limit: 128m
+    cpus: 0.25
+
+# ============================================
+# 网络配置
+# ============================================
+networks:
+  rag-network:
+    driver: bridge
+    name: rag-network
+
+# ============================================
+# 数据卷配置
+# ============================================
+volumes:
+  postgres_data:
+    name: rag-postgres-data
+  redis_data:
+    name: rag-redis-data
+  qdrant_data:
+    name: rag-qdrant-data
+  minio_data:
+    name: rag-minio-data
+  etcd_data:
+    name: rag-etcd-data
+  elasticsearch_data:
+    name: rag-elasticsearch-data
+  elasticsearch_logs:
+    name: rag-elasticsearch-logs
+  prom_data:
+    name: rag-monitoring-prom-data
+  grafana_data:
+    name: rag-monitoring-grafana-data
